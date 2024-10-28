@@ -1,50 +1,52 @@
 package org.example;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class HomeWorkTest {
 
-    HomeWork homeWork = new HomeWork();
+    MorseTranslator morseTranslator = new MorseTranslatorImpl();
 
-    @Test
-    void managerFabric() {
+    @ParameterizedTest
+    @MethodSource("getValidArguments")
+    public void should_decodeValid(String word, String code) {
+        Assertions.assertEquals(word, morseTranslator.decode(code));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getValidArguments")
+    public void should_encodeValid(String code, String word) {
+        Assertions.assertEquals(word, morseTranslator.encode(code));
+    }
+
+    private static Stream<Arguments> getValidArguments() {
+        return Stream.of(
+                Arguments.of("hello world", ".... . .-.. .-.. --- / .-- --- .-. .-.. -.."),
+                Arguments.of("morse code", "-- --- .-. ... . / -.-. --- -.. ."),
+                Arguments.of("thank you", "- .... .- -. -.- / -.-- --- ..-"),
+                Arguments.of("see you", "... . . / -.-- --- ..-"),
+                Arguments.of("take care", "- .- -.- . / -.-. .- .-. ."),
+                Arguments.of("happy birthday", ".... .- .--. .--. -.-- / -... .. .-. - .... -.. .- -.--"),
+                Arguments.of("time flies", "- .. -- . / ..-. .-.. .. . ..."),
+                Arguments.of("stay safe", "... - .- -.-- / ... .- ..-. ."),
+                Arguments.of("dream big", "-.. .-. . .- -- / -... .. --."),
+                Arguments.of("love life", ".-.. --- ...- . / .-.. .. ..-. .")
+        );
     }
 
     @Test
-    void check() {
-        List<Integer> expectedQueue = generateQueue(1, 4);
-        List<String> pairs = generatePairs(expectedQueue);
-        assertEquals(expectedQueue, homeWork.check(pairs));
+    public void when_wordArgumentIsInvalid_then_throwException() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> morseTranslator.decode("abc"));
     }
-
-    private List<String> generatePairs(List<Integer> expectedQueue) {
-        List<String> pairs = new ArrayList<>();
-        Function<Integer, Integer> map = (x) -> (x < 0 || x >= expectedQueue.size()) ? 0 : expectedQueue.get(x);
-
-        for (int i = 0;
-             i < expectedQueue.size(); i++) {
-            pairs.add(String.format("%d:%d", map.apply(i - 1), map.apply(i + 1)));
-        }
-        Collections.shuffle(pairs);
-        return pairs;
+    @Test
+    public void when_codeArgumentIsInvalid_then_throwException() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> morseTranslator.encode("..."));
     }
-
-    private List<Integer> generateQueue(int seed, int length) {
-        return new Random(seed)
-                .ints(1, length * 100)
-                .limit(length)
-                .boxed()
-                .collect(Collectors.toList());
-    }
-
-
 }
